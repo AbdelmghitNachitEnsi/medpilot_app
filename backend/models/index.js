@@ -1,16 +1,30 @@
 import { Sequelize } from "sequelize";
+import dotenv from 'dotenv';
 import userModel from "./user.js";
 import patientModel from "./patient.js";
 import doctorModel from "./doctor.js";
+
+
+dotenv.config();
+
 const sequelize = new Sequelize(
-  "MedPilot",
-  "postgres",
-  "12345",
-  {
-    host: "127.0.0.1",
-    dialect: "postgres"
-  }
+    process.env.DB_NAME || "MedPilot",
+    process.env.DB_USER || "postgres",
+    process.env.DB_PASSWORD || "123456",
+    {
+        host: process.env.DB_HOST || "database",
+        dialect: "postgres",
+        port: process.env.DB_PORT || 5432,
+        logging: console.log // Optional: helps with debugging
+    }
 );
+
+// Add connection test
+console.log('Database connection config:', {
+    host: process.env.DB_HOST || "database",
+    database: process.env.DB_NAME || "MedPilot",
+    user: process.env.DB_USER || "postgres"
+});
 
 const User = userModel(sequelize, Sequelize.DataTypes);
 const Patient = patientModel(sequelize, Sequelize.DataTypes);
