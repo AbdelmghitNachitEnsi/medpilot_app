@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
+import Navigation from "@/pages/NavBar";
 
 export default function Patient() {
     const router = useRouter();
@@ -156,6 +157,7 @@ Question utilisateur : ${message}`
                 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
             </Head>
+            <Navigation />
 
             <div className="h-screen bg-white font-inter flex flex-col relative overflow-hidden">
                 {/* Background Medical Pattern - FIXE sur toute la page */}
