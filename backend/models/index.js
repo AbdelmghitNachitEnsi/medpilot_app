@@ -3,14 +3,14 @@ import dotenv from 'dotenv';
 import userModel from "./user.js";
 import patientModel from "./patient.js";
 import doctorModel from "./doctor.js";
-
+import RendezVousModel from "./rendezvous.js";
 
 dotenv.config();
 
 const sequelize = new Sequelize(
     process.env.DB_NAME || "MedPilot",
     process.env.DB_USER || "postgres",
-    process.env.DB_PASSWORD || "123456",
+    process.env.DB_PASSWORD || "12345",
     {
         host: process.env.DB_HOST || "database",
         dialect: "postgres",
@@ -26,9 +26,13 @@ console.log('Database connection config:', {
     user: process.env.DB_USER || "postgres"
 });
 
+
+
 const User = userModel(sequelize, Sequelize.DataTypes);
 const Patient = patientModel(sequelize, Sequelize.DataTypes);
 const Doctor = doctorModel(sequelize, Sequelize.DataTypes);
+const RendezVous = RendezVousModel(sequelize, Sequelize.DataTypes);
+
 
 // associations
 User.hasOne(Patient, { foreignKey: "userId" });
@@ -36,4 +40,6 @@ User.hasOne(Doctor, { foreignKey: "userId" });
 Patient.belongsTo(User, { foreignKey: "userId" });
 Doctor.belongsTo(User, { foreignKey: "userId" });
 
-export { sequelize, User, Patient, Doctor };
+RendezVous.belongsTo(Patient, { foreignKey: "patientId" });
+RendezVous.belongsTo(Doctor, { foreignKey: "doctorId" });
+export { sequelize, User, Patient, Doctor,RendezVous };

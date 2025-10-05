@@ -8,7 +8,30 @@ export default function Patient() {
     const [messages, setMessages] = useState([]);
     const [inputMessage, setInputMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [doctors, setDoctors] = useState([]);
+    const [selectedDoctor, setSelectedDoctor] = useState("");
+    const [date, setDate] = useState("");
+    const [heure, setHeure] = useState("");
+    const [message, setMessage] = useState("");
+    const [myRendezVous, setMyRendezVous] = useState([]);
+    const availableSlots = ["08:00","08:30","09:00","09:30","10:00","10:30","11:00","11:30","12:00","12:30","13:00"];
+    useEffect(() => {
+          const fetchMyRendezVous = async () => {
+              const token = localStorage.getItem("token");
+              if (!token) return;
 
+              try {
+                  const res = await fetch("http://localhost:4000/rendezvous/mypatient", {
+                      headers: { Authorization: `Bearer ${token}` },
+                  });
+                  const data = await res.json();
+                  setMyRendezVous(data.rendezvous || []);
+              } catch (err) {
+                  console.error(err);
+              }
+          };
+          fetchMyRendezVous();
+      }, []);
     useEffect(() => {
         const token = localStorage.getItem("token");
         const role = localStorage.getItem("role");
@@ -16,6 +39,36 @@ export default function Patient() {
         if (!token || role !== "patient") router.replace("/");
         else if (storedName) setUsername(storedName);
     }, []);
+    useEffect(() => {
+        // Récupérer la liste des médecins depuis ton backend
+        fetch("http://localhost:4000/doctors")
+          .then(res => res.json())
+          .then(data => setDoctors(data))
+          .catch(err => console.error(err));
+      }, []);
+    const handleRdv = async () => {
+      if (!selectedDoctor || !date || !heure) {
+        setMessage("Veuillez remplir tous les champs");
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:4000/rendezvous", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+          },
+          body: JSON.stringify({ doctorId: selectedDoctor, date, heure })
+        });
+
+        const data = await res.json();
+        if (data.error) setMessage(`❌ ${data.error}`);
+        else setMessage(`✅ Rendez-vous confirmé le ${date} à ${heure}`);
+      } catch (err) {
+        setMessage("❌ Erreur serveur");
+      }
+    };
 
     function logout() {
         localStorage.removeItem("token");
@@ -49,7 +102,7 @@ export default function Patient() {
 Règles :
 - Réponds uniquement aux questions médicales.
 - Donne contact si demandé : +212 649-186852.
-- Présente-toi toujours comme "Je suis MEDPILOT, votre assistant médical."
+- Ne commence pas tes réponses par "Je suis MEDPILOT" sauf si l'utilisateur te demande explicitement qui tu es.
 - Utilise du **vrai gras** avec des balises HTML <strong> comme ceci </strong> pour les termes importants.
 - Ne utilise pas de markdown avec **étoiles**.
 Question utilisateur : ${message}`
@@ -267,6 +320,74 @@ Question utilisateur : ${message}`
                         </div>
                     </div>
                 </div>
+{/* Section Rendez-vous */}
+<div className="max-w-4xl mx-auto my-6 p-6 bg-white/90 backdrop-blur-md border border-gray-200 rounded-2xl shadow-md">
+  <h2 className="text-lg font-semibold mb-4">📅 Prendre un rendez-vous</h2>
+
+  <div className="flex flex-col md:flex-row gap-4">
+    <select
+      value={selectedDoctor}
+      onChange={(e) => setSelectedDoctor(e.target.value)}
+      className="flex-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      <option value="">Sélectionnez un médecin</option>
+      {doctors.map((d) => (
+        <option key={d.id} value={d.id}>
+          {d.username || d.name}
+        </option>
+      ))}
+    </select>
+
+    <input 
+      type="date"
+      value={date}
+      onChange={(e) => setDate(e.target.value)}
+      min={new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split("T")[0]} // demain
+      className="flex-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+
+
+    <select
+  value={heure}
+  onChange={(e) => setHeure(e.target.value)}
+  className="flex-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+>
+  <option value="">Sélectionnez un créneau</option>
+  {availableSlots.map((slot) => (
+    <option key={slot} value={slot}>
+      {slot}
+    </option>
+  ))}
+</select>
+
+  </div>
+
+  <button
+    onClick={handleRdv}
+    className="mt-4 w-full md:w-auto bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white px-6 py-2 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+  >
+    Réserver
+  </button>
+
+  {message && <p className="mt-2 text-sm text-gray-700">{message}</p>}
+</div>
+
+
+<div className="max-w-md mx-auto mt-6 p-4 border rounded-xl bg-white shadow-md">
+  <h3 className="font-bold mb-2">Mes rendez-vous</h3>
+  {myRendezVous.length === 0 ? (
+      <p className="text-gray-500 text-sm">Aucun rendez-vous pour l'instant.</p>
+  ) : (
+      <ul className="space-y-1">
+         {myRendezVous.map(rdv => (
+            <li key={rdv.id} className="border px-2 py-1 rounded">
+                Dr. {rdv.Doctor?.username || rdv.doctorId} - {rdv.date} à {rdv.heure}
+            </li>
+        ))}
+      </ul>
+  )}
+</div>
+
 
                 <style jsx global>{`
                     .prose strong {

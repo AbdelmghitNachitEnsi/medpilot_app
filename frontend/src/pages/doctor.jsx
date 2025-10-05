@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 export default function Doctor() {
   const router = useRouter();
   const [username, setUsername] = useState("Doctor");
+  const [rendezvous, setRendezvous] = useState([]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -12,6 +13,25 @@ export default function Doctor() {
     const storedName = localStorage.getItem("username");
     if (!token || role !== "doctor") router.replace("/");
     else if (storedName) setUsername(storedName);
+  }, []);
+   // Récupérer les rendez-vous
+  useEffect(() => {
+    const fetchRendezvous = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      try {
+        const res = await fetch("http://localhost:4000/rendezvous/mydoctor", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok) setRendezvous(data.rendezvous || []);
+        else console.error(data.error);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchRendezvous();
   }, []);
 
   function logout() {
@@ -44,7 +64,7 @@ export default function Doctor() {
 Règles :
 - Réponds uniquement aux questions médicales.
 - Donne contact si demandé : +212 649-186852.
-- Présente-toi toujours comme "Je suis MEDPILOT, votre assistant médical."
+- Ne commence pas tes réponses par "Je suis MEDPILOT" sauf si l'utilisateur te demande explicitement qui tu es.
 Question utilisateur : ${message}`
                   }
                 ]
@@ -129,6 +149,31 @@ Question utilisateur : ${message}`
           Logout
         </button>
       </header>
+        {/* Liste des rendez-vous */}
+      <section className="w-full max-w-2xl bg-white shadow-md rounded-lg p-4 mb-6">
+        <h2 className="text-lg font-semibold mb-3">Mes rendez-vous</h2>
+        {rendezvous.length === 0 ? (
+          <p>Aucun rendez-vous pour l'instant.</p>
+        ) : (
+          <ul className="space-y-2">
+            {rendezvous.map((r) => (
+              <li
+                key={r.id}
+                className="border border-gray-200 rounded-lg p-3 flex justify-between items-center"
+              >
+                <div>
+                  <p className="font-medium">{r.patient.username}</p>
+                  <p className="text-gray-500">{r.patient.email}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-gray-700">{r.date}</p>
+                  <p className="text-gray-700">{r.heure}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {/* Chat Widget */}
       <div className="flex flex-col w-full max-w-2xl bg-white shadow-md rounded-lg p-4">
@@ -154,5 +199,7 @@ Question utilisateur : ${message}`
         </div>
       </div>
     </div>
+
+    
   );
 }

@@ -3,6 +3,7 @@ import cors from "cors";
 import { sequelize } from "./models/index.js";
 import authRoutes from "./routes/auth.js";
 import doctorsRoutes from "./routes/doctors.js";
+import rendezvousRoutes from "./routes/rendezvous.js";
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -19,8 +20,12 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/auth", authRoutes);
+
 app.use("/doctors", doctorsRoutes);
 app.get("/", (req, res) => res.send("API Running"));
+
+
+app.use(rendezvousRoutes);
 
 const PORT = process.env.PORT || 4000;
 
