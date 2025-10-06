@@ -4,7 +4,8 @@ import { sequelize } from "./models/index.js";
 import authRoutes from "./routes/auth.js";
 import doctorsRoutes from "./routes/doctors.js";
 import rendezvousRoutes from "./routes/rendezvous.js";
-
+import http from "http";
+import { Server } from "socket.io";
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -27,9 +28,69 @@ app.get("/", (req, res) => res.send("API Running"));
 
 app.use(rendezvousRoutes);
 
+// HTTP server & Socket.io
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
+
+let onlineUsers = {}; // { userId: socketId }
+
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+
+  // Login
+  socket.on("login", (user) => {
+    try {
+      if (!user?.id) return;
+      onlineUsers[user.id] = socket.id;
+      console.log("Online Users:", onlineUsers);
+    } catch (err) {
+      console.error("Login error:", err.message);
+    }
+  });
+
+  // Chat messages
+  socket.on("sendMessage", ({ senderId, receiverId, text }) => {
+    const receiverSocket = onlineUsers[receiverId];
+    if (receiverSocket) {
+      io.to(receiverSocket).emit("receiveMessage", { senderId, text });
+    }
+  });
+
+  // WebRTC signaling
+  socket.on("callUser", ({ from, to, offer }) => {
+    const receiverSocket = onlineUsers[to];
+    if (receiverSocket) io.to(receiverSocket).emit("incomingCall", { from, offer });
+  });
+
+  socket.on("answerCall", ({ to, answer }) => {
+    const receiverSocket = onlineUsers[to];
+    if (receiverSocket) io.to(receiverSocket).emit("callAccepted", answer);
+  });
+
+  socket.on("iceCandidate", ({ to, candidate }) => {
+    const receiverSocket = onlineUsers[to];
+    if (receiverSocket) io.to(receiverSocket).emit("iceCandidate", candidate);
+  });
+
+  // Disconnect
+  socket.on("disconnect", () => {
+    for (let key in onlineUsers) {
+      if (onlineUsers[key] === socket.id) delete onlineUsers[key];
+    }
+    console.log("User disconnected:", socket.id);
+  });
+});
+
+
 const PORT = process.env.PORT || 4000;
 
-app.listen(PORT, async () => {
+server.listen(PORT, async () => {
   try {
     await sequelize.authenticate();
     console.log("✅ Database connected successfully");

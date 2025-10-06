@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
+import VideoCall from "./VideoCall";
+
+import io from "socket.io-client";
+
+let socket;
 
 export default function Patient() {
     const router = useRouter();
@@ -15,6 +20,33 @@ export default function Patient() {
     const [message, setMessage] = useState("");
     const [myRendezVous, setMyRendezVous] = useState([]);
     const availableSlots = ["08:00","08:30","09:00","09:30","10:00","10:30","11:00","11:30","12:00","12:30","13:00"];
+
+   const [messages2, setMessages2] = useState([]);
+   const [inputMessage2, setInputMessage2] = useState("");
+   const [patientId, setPatientId] = useState("1");
+    useEffect(() => {
+    socket = io("http://localhost:4000");
+
+    socket.emit("login", { id: patientId });
+
+    socket.on("receiveMessage", ({ senderId, text }) => {
+      setMessages2(prev => [...prev, { type: "doctor", text }]);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+    const sendMessage2 = () => {
+  if (!inputMessage2.trim()) return;
+  setMessages2(prev => [...prev, { type: "patient", text: inputMessage2 }]);
+  socket.emit("sendMessage", { senderId: patientId, receiverId: "2", text: inputMessage2 }); // 2 = doctor test
+  setInputMessage2("");
+};
+
+
+
     useEffect(() => {
           const fetchMyRendezVous = async () => {
               const token = localStorage.getItem("token");
@@ -320,6 +352,49 @@ Question utilisateur : ${message}`
                         </div>
                     </div>
                 </div>
+
+
+ <div className="max-w-4xl mx-auto my-6 p-6 bg-white/90 backdrop-blur-md border border-gray-200 rounded-2xl shadow-md">
+  <h2 className="text-lg font-semibold mb-4">💬 DOCTOR Chat</h2>
+
+  <div className="flex flex-col gap-3 h-72 overflow-y-auto p-2">
+    {messages2.map((msg, i) => (
+      <div
+        key={i}
+        className={`flex ${msg.type === "patient" ? "justify-end" : "justify-start"}`}
+      >
+        <div
+          className={`px-4 py-2 rounded-2xl max-w-xs break-words ${
+            msg.type === "patient"
+              ? "bg-blue-600 text-white rounded-br-none"
+              : "bg-gray-200 text-gray-900 rounded-bl-none"
+          }`}
+        >
+          {msg.text}
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <div className="flex mt-4 gap-2">
+    <input
+      value={inputMessage2}
+      onChange={(e) => setInputMessage2(e.target.value)}
+      placeholder="Écrivez un message..."
+      className="flex-1 px-4 py-2 border border-gray-300 rounded-l-2xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+    <button
+      onClick={sendMessage2}
+      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-r-2xl font-medium shadow-md hover:shadow-lg transition-all duration-200"
+    >
+      Envoyer
+    </button>
+  </div>
+</div>
+
+
+
+
 {/* Section Rendez-vous */}
 <div className="max-w-4xl mx-auto my-6 p-6 bg-white/90 backdrop-blur-md border border-gray-200 rounded-2xl shadow-md">
   <h2 className="text-lg font-semibold mb-4">📅 Prendre un rendez-vous</h2>

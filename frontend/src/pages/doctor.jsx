@@ -1,11 +1,40 @@
 // frontend/pages/doctor.jsx
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import VideoCall from "./VideoCall";
+import io from "socket.io-client";
 
+let socket;
 export default function Doctor() {
   const router = useRouter();
   const [username, setUsername] = useState("Doctor");
   const [rendezvous, setRendezvous] = useState([]);
+
+  const [messages, setMessages] = useState([]);
+  const [inputMessage, setInputMessage] = useState("");
+  const [doctorId, setDoctorId] = useState("2");
+  const sendMessage2 = () => {
+  if (!inputMessage.trim()) return;
+  setMessages(prev => [...prev, { type: "doctor", text: inputMessage }]);
+  socket.emit("sendMessage", { senderId: doctorId, receiverId: "1", text: inputMessage }); // 1 = patient test
+  setInputMessage("");
+};
+
+  useEffect(() => {
+    socket = io("http://localhost:4000");
+
+    socket.emit("login", { id: doctorId });
+
+    socket.on("receiveMessage", ({ senderId, text }) => {
+      setMessages(prev => [...prev, { type: "patient", text }]);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -174,6 +203,48 @@ Question utilisateur : ${message}`
           </ul>
         )}
       </section>
+
+
+<div className="max-w-4xl mx-auto my-6 p-6 bg-white/90 backdrop-blur-md border border-gray-200 rounded-2xl shadow-md">
+  <h2 className="text-lg font-semibold mb-4">💬 Patient Chat</h2>
+
+  <div className="flex flex-col gap-3 h-72 overflow-y-auto p-2">
+    {messages.map((msg, i) => (
+      <div
+        key={i}
+        className={`flex ${msg.type === "patient" ? "justify-start" : "justify-end"}`}
+      >
+        <div
+          className={`px-4 py-2 rounded-2xl max-w-xs break-words ${
+            msg.type === "patient"
+              ? "bg-blue-600 text-white rounded-br-none"
+              : "bg-gray-200 text-gray-900 rounded-bl-none"
+          }`}
+        >
+          {msg.text}
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <div className="flex mt-4 gap-2">
+    <input
+      value={inputMessage}
+      onChange={(e) => setInputMessage(e.target.value)}
+      placeholder="Écrivez un message..."
+      className="flex-1 px-4 py-2 border border-gray-300 rounded-l-2xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+    <button
+      onClick={sendMessage2}
+      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-r-2xl font-medium shadow-md hover:shadow-lg transition-all duration-200"
+    >
+      Envoyer
+    </button>
+  </div>
+</div>
+
+
+
 
       {/* Chat Widget */}
       <div className="flex flex-col w-full max-w-2xl bg-white shadow-md rounded-lg p-4">
