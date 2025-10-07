@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
-import Navigation from '@/pages/NavBar';
+import Navigation from './LandingNav';
 
 
 export default function Home() {
@@ -14,7 +14,7 @@ export default function Home() {
     const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
 
-    const API = "http://localhost:4001";
+    const API = "http://localhost:4000";
 
     async function handleSignup(e) {
         e.preventDefault();
