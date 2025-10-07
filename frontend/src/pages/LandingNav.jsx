@@ -50,21 +50,7 @@ export default function Navigation() {
                         {/* Séparateur */}
                         <div className="h-6 w-px bg-gray-300/60"></div>
 
-                        {/* Bouton de connexion principal */}
-                        <Link href="/login">
-                            <button className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-6 py-2.5 rounded-xl font-medium transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl group">
-                                <i className="fas fa-sign-in-alt group-hover:scale-110 transition-transform duration-200"></i>
-                                <span>Se Connecter</span>
-                            </button>
-                        </Link>
 
-                        {/* Lien d'urgence */}
-                        <Link href="/urgence">
-                            <button className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-2.5 rounded-xl font-medium transition-all duration-300 flex items-center space-x-2 text-sm shadow-lg hover:shadow-xl">
-                                <i className="fas fa-ambulance"></i>
-                                <span>Urgence</span>
-                            </button>
-                        </Link>
                     </div>
 
                     {/* Menu Mobile */}
