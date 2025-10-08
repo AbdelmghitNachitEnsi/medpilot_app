@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: MedPilot
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 12345
+      POSTGRES_PASSWORD: rimarima
     ports:
       - "5432:5432"
     volumes:
@@ -28,7 +28,7 @@ services:
       DB_PORT: 5432
       DB_NAME: MedPilot
       DB_USER: postgres
-      DB_PASSWORD: 12345
+      DB_PASSWORD: rimarima
     depends_on:
       database:
         condition: service_healthy
@@ -38,6 +38,7 @@ services:
     # Run migrations first, then start the app
     command: >
       sh -c "
+      
         npx sequelize-cli db:migrate &&
         npx nodemon app.js
       "
@@ -55,6 +56,14 @@ services:
       - /app/node_modules
       - /app/.next
     command: npm run dev
+  
+  ai_service:
+    build: ./ai_service
+    container_name: ai_service
+    ports:
+      - "5001:5001"
+    restart: always
+
 
 volumes:
   postgres_data:

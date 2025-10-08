@@ -27,63 +27,93 @@ export default function Patient() {
         window.location.href = "/";
     }
 
-    const sendMessage = async (text = null) => {
-        const message = text || inputMessage.trim();
-        if (!message) return;
+const sendMessage = async (text = null) => {
+  const message = text || inputMessage.trim();
+  if (!message) return;
 
-        const userMessage = { type: 'user', content: message, timestamp: new Date() };
-        setMessages(prev => [...prev, userMessage]);
-        setInputMessage("");
-        setIsLoading(true);
+  const userMessage = { type: 'user', content: message, timestamp: new Date() };
+  setMessages(prev => [...prev, userMessage]);
+  setInputMessage("");
+  setIsLoading(true);
 
-        try {
-            const response = await fetch(
-                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBeQP08KNwnHAszw5NOD4aAppk7XF0216A",
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contents: [
-                            {
-                                parts: [
-                                    {
-                                        text: `Tu es un chatbot professionnel appelé "VIZPILOT".
-Règles :
-- Réponds uniquement aux questions médicales.
-- Donne contact si demandé : +212 649-186852.
-- Ne commence pas tes réponses par "Je suis VIZPILOT" sauf si l'utilisateur te demande explicitement qui tu es.
-- Utilise du **vrai gras** avec des balises HTML <strong> comme ceci </strong> pour les termes importants.
-- Ne utilise pas de markdown avec **étoiles**.
-- Sois précis, professionnel et empathique.
-Question utilisateur : ${message}`
-                                    }
-                                ]
-                            }
-                        ]
-                    })
-                }
-            );
-            const data = await response.json();
-            let botMessage =
-                data.candidates?.[0]?.content?.parts?.[0]?.text || "🤖 Je ne comprends pas votre question. Pouvez-vous reformuler ?";
+  try {
+    // 🏥 FIRST: Try AI Medical Service
+    console.log("🔍 Checking symptoms with AI medical service...");
+    
+    const aiResponse = await fetch("http://localhost:5001/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: message })
+    });
 
-            // Convertir le markdown en HTML pour le gras
-            botMessage = botMessage.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    if (aiResponse.ok) {
+      const aiData = await aiResponse.json();
+      
+      // Check if we have a good confidence score (adjust threshold as needed)
+      if (aiData.recommended_specialty_fr && aiData.confidence_score > 0.1) {
+        const specialtyFr = aiData.recommended_specialty_fr;
+        const specialtyEn = aiData.recommended_specialty_en;
+        const confidence = (aiData.confidence_score * 100).toFixed(0);
+        
+        console.log(`🏥 AI detected: ${specialtyFr} (Confidence: ${confidence}%)`);
+        
+        const botMessageObj = {
+          type: "bot",
+          content: `D'après vos symptômes, je vous recommande de consulter un <strong>${specialtyFr}</strong>. Je vous redirige vers la prise de rendez-vous...`,
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, botMessageObj]);
+        setIsLoading(false);
 
-            const botMessageObj = { type: 'bot', content: botMessage, timestamp: new Date() };
-            setMessages(prev => [...prev, botMessageObj]);
-        } catch (err) {
-            const errorMessage = {
-                type: 'bot',
-                content: "❌ Désolé, je rencontre des difficultés techniques. Veuillez réessayer dans quelques instants.",
-                timestamp: new Date()
-            };
-            setMessages(prev => [...prev, errorMessage]);
-        } finally {
-            setIsLoading(false);
-        }
+        // 🎯 AUTO-REDIRECT to appointment page after 2.5 seconds
+        setTimeout(() => {
+          router.push(`/rdv?specialty=${encodeURIComponent(specialtyEn)}`);
+        }, 2500);
+        
+        return; // Stop here, don't call Gemini
+      }
+    }
+
+    // 🧠 FALLBACK: Use Gemini API if AI service doesn't find a good match
+    console.log("🤖 No strong medical match found, using Gemini...");
+    
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to get response');
+    }
+
+    const data = await response.json();
+    
+    const botMessageObj = {
+      type: 'bot',
+      content: data.response,
+      timestamp: new Date()
     };
+    
+    setMessages(prev => [...prev, botMessageObj]);
 
+  } catch (error) {
+    console.error('Error:', error);
+    
+    const errorMessageObj = {
+      type: 'bot',
+      content: "Désolé, je rencontre des difficultés techniques. Veuillez réessayer.",
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, errorMessageObj]);
+  } finally {
+    setIsLoading(false);
+  }
+};
     useEffect(() => {
         const seenWelcome = localStorage.getItem("seenWelcome");
         if (!seenWelcome) {
