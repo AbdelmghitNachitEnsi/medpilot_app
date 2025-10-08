@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: MedPilot
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123456
+      POSTGRES_PASSWORD: 12345
     ports:
       - "5432:5432"
     volumes:
@@ -19,6 +19,7 @@ services:
 
   backend:
     build: ./backend
+    env_file: ./backend/.env
     ports:
       - "4000:4000"
     environment:
@@ -27,7 +28,7 @@ services:
       DB_PORT: 5432
       DB_NAME: MedPilot
       DB_USER: postgres
-      DB_PASSWORD: 123456
+      DB_PASSWORD: 12345
     depends_on:
       database:
         condition: service_healthy
