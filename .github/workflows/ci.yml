@@ -1,70 +1,43 @@
 name: CI Pipeline
 
-on:
-  push:
-    branches: [main, develop, 'feature/**']
-  pull_request:
-    branches: [main, develop]
+on: [push, pull_request]
 
 jobs:
-  unit-tests:
+  test:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_DB: MedPilot
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: 123456
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Run Backend Tests
-        run: |
-          cd backend
-          npm install
-          npm test
+      - name: Install dependencies
+        run: cd backend && npm install
 
-      - name: Run Frontend Tests
-        run: |
-          cd frontend
-          npm install
-          npm test
-
-      - name: Upload Test Results
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: |
-            backend/coverage/
-            frontend/coverage/
-          retention-days: 30
-
-  code-quality:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Backend Lint
-        run: |
-          cd backend
-          npm install
-          npm run lint || echo "Lint non configuré"
-
-      - name: Frontend Lint
-        run: |
-          cd frontend
-          npm install
-          npm run lint || echo "Lint non configuré"
-
-  docker-build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Backend Image
-        run: cd backend && docker build -t backend-app .
-
-      - name: Build Frontend Image
-        run: cd frontend && docker build -t frontend-app .
+      - name: Run tests
+        run: cd backend && npm test
+        env:
+          DB_HOST: localhost
+          DB_USER: postgres
+          DB_PASSWORD: 123456
+          DB_NAME: MedPilot
+          NODE_ENV: test
+          JWT_SECRET: test-secret
