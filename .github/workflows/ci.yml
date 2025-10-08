@@ -2,30 +2,46 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ main, develop, 'feature/**' ]
+    branches: [main, develop, 'feature/**']
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
-  # Pour toutes les branches feature
-  quality-check:
+  code-quality:
     runs-on: ubuntu-latest
-    if: contains(github.ref, 'feature/')
-
     steps:
       - uses: actions/checkout@v4
-      - name: ESLint Check
-        run: |
-          cd backend && npm run lint || echo "No lint script"
-          cd ../frontend && npm run lint || echo "No lint script"
+      - name: ESLint Backend
+        run: cd backend && npm install && npm run lint
+      - name: ESLint Frontend
+        run: cd frontend && npm install && npm run lint
 
-  # Pour develop et main seulement
-  full-tests:
+
+  unit-tests:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
-
     steps:
       - uses: actions/checkout@v4
-      - name: Run Tests & Build
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Backend Unit Tests
         run: |
-          docker-compose build
+          cd backend
+          npm install
+          npm test -- --coverage
+
+      - name: Frontend Unit Tests
+        run: |
+          cd frontend  
+          npm install
+          npm test -- --coverage
+
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker Images
+        run: docker-compose build
