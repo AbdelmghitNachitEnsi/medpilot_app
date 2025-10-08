@@ -32,17 +32,6 @@ jobs:
       - name: Install dependencies
         run: cd backend && npm install
 
-      - name: Run database migrations
-        run: |
-          cd backend
-          npx sequelize-cli db:migrate
-        env:
-          DB_HOST: localhost
-          DB_USER: postgres
-          DB_PASSWORD: 123456
-          DB_NAME: MedPilot
-          NODE_ENV: test
-
       - name: Run tests
         run: cd backend && npm test
         env:

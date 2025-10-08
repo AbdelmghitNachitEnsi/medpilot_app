@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "jest",
+    "test": "jest --setupFilesAfterEnv=./tests/setup.js --forceExit",
     "dev": "nodemon app.js"
   },
   "keywords": [],
