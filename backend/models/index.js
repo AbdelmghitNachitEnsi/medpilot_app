@@ -10,7 +10,7 @@ dotenv.config();
 const sequelize = new Sequelize(
     process.env.DB_NAME || "MedPilot",
     process.env.DB_USER || "postgres",
-    process.env.DB_PASSWORD || "12345",
+    process.env.DB_PASSWORD || "123456",
     {
         host: process.env.DB_HOST || "database",
         dialect: "postgres",

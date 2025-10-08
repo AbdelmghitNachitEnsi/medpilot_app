@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "jest --setupFilesAfterEnv=./tests/setup.js --forceExit",
+    "test": "NODE_ENV=test jest --setupFilesAfterEnv=./tests/setup.js --forceExit --detectOpenHandles",
     "dev": "nodemon app.js"
   },
   "keywords": [],
