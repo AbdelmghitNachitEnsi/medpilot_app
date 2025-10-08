@@ -1,11 +1,11 @@
-const { sequelize } = require('../models/index.js');
+import { sequelize } from '../models/index.js';
 
-// Nettoyer la base de données avant chaque test
-beforeEach(async () => {
-    await sequelize.sync({ force: false });
+// Créer toutes les tables avant les tests
+beforeAll(async () => {
+    await sequelize.sync({ force: true });
 });
 
-// Fermer la connexion après tous les tests
+// Fermer la connexion après les tests
 afterAll(async () => {
     await sequelize.close();
 });
