@@ -7,6 +7,7 @@ import rendezvousRoutes from "./routes/rendezvous.js";
 import http from "http";
 import { Server } from "socket.io";
 import dotenv from 'dotenv';
+import client from 'prom-client';
 dotenv.config();
 
 console.log('Environment variables:', {
@@ -19,6 +20,27 @@ console.log('Environment variables:', {
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+
+
+// prmotheuse 
+// Custom HTTP counter
+const httpRequestCounter = new client.Counter({
+  name: 'medpilot_http_requests_total',
+  help: 'Total HTTP requests',
+  labelNames: ['method', 'route', 'status'],
+  registers: [client.register]  
+});
+
+app.use((req, res, next) => {
+  const originalSend = res.send;
+  res.send = function(data) {
+    httpRequestCounter.inc({ method: req.method, route: req.path, status: res.statusCode });
+    return originalSend.call(this, data);
+  };
+  next();
+});
+// 
 
 app.use("/auth", authRoutes);
 
@@ -89,18 +111,22 @@ io.on("connection", (socket) => {
 
 const PORT = process.env.PORT || 4000;
 
-// ⚠️ NE PAS démarrer le serveur pendant les tests
-if (process.env.NODE_ENV !== 'test') {
-  server.listen(PORT, async () => {
-    try {
-      await sequelize.authenticate();
-      console.log("✅ Database connected successfully");
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
-    } catch (error) {
-      console.error("❌ Database connection failed:", error.message);
-    }
-  });
-}
+// هاد الجزء: نزيلو الـcomment ونزيلو الـprefix
+const collectDefaultMetrics = client.collectDefaultMetrics;
+collectDefaultMetrics();  // بدون prefix – هاد يجيب process_cpu، memory، إلخ بدون medpilot_
 
-// Exporter pour les tests
-export { app, server, sequelize };
+// Route Prometheus metrics
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', client.register.contentType);
+  res.end(await client.register.metrics());
+});
+
+server.listen(PORT, async () => {
+  try {
+    await sequelize.authenticate();
+    console.log("✅ Database connected successfully");
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  } catch (error) {
+    console.error("❌ Database connection failed:", error.message);
+  }
+});
