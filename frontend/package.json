@@ -8,8 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:e2e": "cypress run",
+    "test:e2e:ci": "cypress run --headless --browser electron",
+    "test:e2e:dev": "cypress open",
+    "build:ci": "next build"
   },
   "dependencies": {
     "next": "15.5.4",
@@ -17,7 +19,9 @@
     "react-dom": "19.1.0",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
-    "tailwind-scrollbar": "^4.0.2"
+    "tailwind-scrollbar": "^4.0.2",
+    "cypress": "^13.6.0",
+    "wait-on": "^7.2.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
