@@ -144,43 +144,43 @@ export default function Home() {
                                      }}>
                                     <div className="grid grid-cols-2 gap-6">
                                         <div className="space-y-6">
-                                            <div
-                                                className="bg-blue-50 text-center p-6  shadow-lg border border-blue-200"
-                                                style={{
-                                                    borderRadius: '68% 32% 76% 24% / 27% 69% 31% 73%'
-                                                }}
-                                            >
+                                                <div
+                                                    className="bg-blue-50 text-center p-6  shadow-lg border border-blue-200"
+                                                    style={{
+                                                        borderRadius: '68% 32% 76% 24% / 27% 69% 31% 73%'
+                                                    }}
+                                                >
                                                 <i className="fas fa-robot text-blue-600 text-2xl mb-3"></i>
                                                 <h3 className="font-semibold text-gray-900">Assistant IA</h3>
                                                 <p className="text-sm text-gray-600">Diagnostics intelligents</p>
                                             </div>
-                                            <div
-                                                className="bg-green-50 text-center p-6  shadow-lg border border-green-200"
-                                                style={{
-                                                    borderRadius: '68% 32% 76% 24% / 27% 69% 31% 73%'}}
-                                            >
-                                                <i className="fas fa-video text-green-600 text-2xl mb-3"></i>
+                                                <div
+                                                    className="bg-green-50 text-center p-6  shadow-lg border border-green-200"
+                                                    style={{
+                                                        borderRadius: '68% 32% 76% 24% / 27% 69% 31% 73%'}}
+                                                >
+                                                    <i className="fas fa-video text-green-600 text-2xl mb-3"></i>
                                                 <h3 className="font-semibold text-gray-900">Téléconsultation</h3>
                                                 <p className="text-sm text-gray-600">Visio avec médecins</p>
                                             </div>
                                         </div>
                                         <div className="space-y-6 pt-12">
-                                            <div
-                                                className="bg-purple-50 text-center p-6 shadow-lg border border-purple-200"
-                                                style={{
-                                                    borderRadius: '68% 32% 76% 24% / 27% 69% 31% 73%'
-                                                }}
-                                            >
+                                                <div
+                                                    className="bg-purple-50 text-center p-6 shadow-lg border border-purple-200"
+                                                    style={{
+                                                        borderRadius: '68% 32% 76% 24% / 27% 69% 31% 73%'
+                                                    }}
+                                                >
 
                                                 <i className="fas fa-calendar-check text-purple-600 text-2xl mb-3"></i>
                                                 <h3 className="font-semibold text-gray-900">RDV en ligne</h3>
                                                 <p className="text-sm text-gray-600">Réservation facile</p>
                                             </div>
-                                            <div
-                                                className="bg-orange-50 text-center p-6  shadow-lg border border-orange-200"
-                                                style={{
-                                                    borderRadius: '68% 32% 76% 24% / 27% 69% 31% 73%'}}
-                                            >
+                                                <div
+                                                    className="bg-orange-50 text-center p-6  shadow-lg border border-orange-200"
+                                                    style={{
+                                                        borderRadius: '68% 32% 76% 24% / 27% 69% 31% 73%'}}
+                                                >
                                                 <i className="fas fa-file-medical text-orange-600 text-2xl mb-3"></i>
                                                 <h3 className="font-semibold text-gray-900">Dossier médical</h3>
                                                 <p className="text-sm text-gray-600">Sécurisé et complet</p>
@@ -316,15 +316,13 @@ export default function Home() {
                                     {/* Auth Tabs */}
                                     <div className="flex bg-gray-100 rounded-2xl p-2">
                                         <button
-                                            onClick={() => document.getElementById('auth-section').scrollIntoView({ behavior: 'smooth' })}
-
+                                            onClick={() => setMode("signin")}
                                             className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
                                                 mode === "signin"
                                                     ? "bg-white text-blue-600 shadow-sm"
                                                     : "text-gray-600 hover:text-gray-900"
                                             }`}
                                         >
-
                                             Connexion
                                         </button>
                                         <button
