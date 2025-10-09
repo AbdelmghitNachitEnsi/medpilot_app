@@ -1,12 +1,10 @@
-version: '3.8'
-
 services:
   database:
     image: postgres:13
     environment:
       POSTGRES_DB: MedPilot
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123456
+      POSTGRES_PASSWORD: 12345
     ports:
       - "5432:5432"
     volumes:
@@ -17,8 +15,20 @@ services:
       timeout: 5s
       retries: 5
 
+  test-database:
+    image: postgres:13
+    environment:
+      - POSTGRES_DB=MedPilot_test
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123456
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+
   backend:
     build: ./backend
+    env_file: ./backend/.env
     ports:
       - "4000:4000"
     environment:
@@ -34,7 +44,7 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
-    # Run migrations first, then start the app
+
     command: >
       sh -c "
         npx sequelize-cli db:migrate &&
@@ -57,3 +67,4 @@ services:
 
 volumes:
   postgres_data:
+  postgres_test_data:

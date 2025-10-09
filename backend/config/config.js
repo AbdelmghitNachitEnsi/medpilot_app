@@ -13,7 +13,7 @@ export default {
         username: process.env.DB_USER || 'postgres',
         password: process.env.DB_PASSWORD || '123456',
         database: process.env.DB_NAME || 'MedPilot_test',
-        host: process.env.DB_HOST || 'database',
+        host: process.env.DB_HOST || 'localhost',
         dialect: 'postgres',
     },
     production: {
