@@ -87,15 +87,20 @@ io.on("connection", (socket) => {
   });
 });
 
-
 const PORT = process.env.PORT || 4000;
 
-server.listen(PORT, async () => {
-  try {
-    await sequelize.authenticate();
-    console.log("✅ Database connected successfully");
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-  } catch (error) {
-    console.error("❌ Database connection failed:", error.message);
-  }
-});
+// ⚠️ NE PAS démarrer le serveur pendant les tests
+if (process.env.NODE_ENV !== 'test') {
+  server.listen(PORT, async () => {
+    try {
+      await sequelize.authenticate();
+      console.log("✅ Database connected successfully");
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
+    } catch (error) {
+      console.error("❌ Database connection failed:", error.message);
+    }
+  });
+}
+
+// Exporter pour les tests
+export { app, server, sequelize };
